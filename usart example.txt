@@ -1,0 +1,94 @@
+        //data_buffer 
+
+            //tx serial
+
+            #include <avr/io.h> 
+
+            #define F_CPU 16000000 
+            #define BUAD 9600 
+            #define BUAD_RATE_CALC ((F_CPU/16/BUAD) - 1)  
+            #define buffer_size 128
+            #define boolen 0
+            int main(void){  
+                char br;
+                char ar[]= "hello";
+                char buffer[10]; 
+                //High and low bits
+                UBRR0H = (BUAD_RATE_CALC >> 8); 
+                UBRR0L = BUAD_RATE_CALC; 
+                //////////////// 
+                //transimit and recieve enable
+                UCSR0B = (1 << TXEN0)| (1 << TXCIE0) | (1 << RXEN0) | (1 << RXCIE0); 
+                UCSR0C = (1 << UCSZ01) | (1 << UCSZ00);  //8 bit data format
+                ////////////////////////////////////////////////////////////////
+                int i = 0;
+
+                while (1){  
+                /*while( (UCSR0A & (1<<RXC0))  == 0 ){}; 
+                    br = UDR0;
+                */
+
+                while (( UCSR0A & (1<<UDRE0))  == 0){};
+
+                        for (i = 0; i < strlen(ar); i++){ 
+                            while (( UCSR0A & (1<<UDRE0))  == 0){};
+                            UDR0 = ar[i]; 
+                            if (i == (strlen(ar) - 1)){ 
+                                return 0;
+                            }
+                        } 
+                }
+
+            }   
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+#include <avr/io.h> 
+#define F_CPU 16000000 
+#define BUAD 9600 
+#define BUAD_RATE_CALC ((F_CPU/16/BUAD) - 1)  
+
+//Function definitions
+void Setup(void);
+void Loop(void);
+void serialSetup(void);
+void serialSend(char* sendString);
+
+//Global variables.
+char ar[]= "hello";
+
+void Setup(){
+//Code to be run once (At start).
+    serialSetup();
+    serialSend(ar);
+}
+
+void Loop(){
+    //Code to be run continiously.
+}
+
+void serialSetup(){
+    //Register settings
+    //High and low bits
+    UBRR0H = (BUAD_RATE_CALC >> 8); 
+    UBRR0L = BUAD_RATE_CALC; 
+    //transimit and recieve enable
+    UCSR0B = (1 << TXEN0)| (1 << TXCIE0) | (1 << RXEN0) | (1 << RXCIE0); 
+    UCSR0C = (1 << UCSZ01) | (1 << UCSZ00);  //8 bit data format
+}
+
+void serialSend(char* sendString){
+     for (int i = 0; i < strlen(sendString); i++){ 
+         while (( UCSR0A & (1<<UDRE0))  == 0){};
+         UDR0 = sendString[i]; 
+     } 
+}
+
+int main(void){  
+    Setup();
+    while(1){
+       Loop();
+    }
+while(1){}//If you ever return from Loop(); This while will catch you, so it won't continue doing randomness.           
+} 
