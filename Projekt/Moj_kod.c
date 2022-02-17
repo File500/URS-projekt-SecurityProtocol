@@ -2,7 +2,7 @@
 #include <avr/io.h>
 #define LED_OUTPUT 0
 #define PIR_INPUT  0
-#define SOUND_INPUT 0
+#define SOUND_INPUT 1
 
 int main(void)
 {
