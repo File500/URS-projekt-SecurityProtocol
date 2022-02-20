@@ -31,11 +31,11 @@ void changeTime() {
     time[8] = '\0';
 
     lcd_clrscr();
-    if(fMode=1){
+    if(fMode==1){
     lcd_gotoxy(0,0);
     lcd_puts("Sound sensor")
     }
-    if(fMode=2){
+    if(fMode==2){
     lcd_gotoxy(0,0);
     lcd_puts("Sound sensor")
     }
@@ -90,8 +90,8 @@ int main(void)
 		
 		 if(PINC & _BV(SOUND_INPUT)){
 			PORTB |= _BV(LED_OUTPUT_SOUND);
-            fMode = 1;
-            changeTime();
+            		fMode = 1;
+           		 changeTime();
 			_delay_ms(2000);
 			PORTB = 0x00;
 			_delay_ms(2000);
