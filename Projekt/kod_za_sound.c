@@ -21,14 +21,12 @@ int main(void)
 		
 		 if(PINC & _BV(SOUND_INPUT)){
 			PORTB |= _BV(LED_OUTPUT_SOUND);
-			PORTA = 0b11101111;
 			_delay_ms(2000);
 		} 
 		
 		
 		if(PIND & _BV(PIR_INPUT)){
 			PORTB |= _BV(LED_OUTPUT_PIR);
-			//while((PINB & _BV(PIR_INPUT)));
 			_delay_ms(10000);
 		}
 		
