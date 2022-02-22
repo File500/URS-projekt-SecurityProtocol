@@ -4,10 +4,8 @@
 
 #include <avr/interrupt.h>
 
-#define LED_OUTPUT_SOUND 3
-#define LED_OUTPUT_PIR 0
-#define PIR_INPUT 7
-#define SOUND_INPUT 2
+#define PIR_INPUT 6
+#define SOUND_INPUT 0
 
 #include "lcd.h"
 
@@ -38,9 +36,9 @@ void changeTime() {
   }
   if (fMode == 2) {
     lcd_gotoxy(0, 0);
-    lcd_puts("Sound sensor")
+    lcd_puts("Motion sensor")
   }
-  lcd_gotoxy(0, 2); // pozicioniramo sat u sredinu lcd ekrana
+  lcd_gotoxy(0, 1); // pozicioniramo sat u sredinu lcd ekrana
   lcd_puts(time);
 }
 
@@ -67,9 +65,8 @@ ISR(TIMER0_COMP_vect) {
 }
 
 int main(void) {
-  DDRC = 0x00; //Set the Sound sensor port as input port
-  DDRA = 0x00; /* Set the PIR port as input port */
-  DDRB = 0xff; //Ledica za sound sensor
+
+  DDRB = 0x00; //Pir i sound kao izlazni
 
   DDRD = _BV(4);
 
@@ -87,12 +84,12 @@ int main(void) {
   lcd_clrscr();
   while (1) {
 
-    if (PINC & _BV(SOUND_INPUT)) {
+    if (PINB & _BV(SOUND_INPUT)) {
       fMode = 1;
       changeTime();
       _delay_ms(2000);
     }
-    if (PIND & _BV(PIR_INPUT)) {
+    if (PINB & _BV(PIR_INPUT)) {
       fMode = 2;
       changeTime();
       _delay_ms(10000);
