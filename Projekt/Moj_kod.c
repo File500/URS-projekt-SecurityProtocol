@@ -88,22 +88,16 @@ int main(void) {
   while (1) {
 
     if (PINC & _BV(SOUND_INPUT)) {
-      PORTB |= _BV(LED_OUTPUT_SOUND);
       fMode = 1;
       changeTime();
       _delay_ms(2000);
-      PORTB = 0x00;
-      _delay_ms(2000);
     }
     if (PIND & _BV(PIR_INPUT)) {
-      PORTB |= _BV(LED_OUTPUT_PIR);
       fMode = 2;
       changeTime();
       _delay_ms(10000);
-      PORTB = 0X00;
-      _delay_ms(2000); // Ili se može staviti jedan zajednički delay kao što je u kod_za_sound
     }
-    //_delay_ms(2000);
+    //_delay_ms(5000);
 
   }
 }
