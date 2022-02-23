@@ -1,3 +1,4 @@
+// Link za driver za uart iz 2008: http://wp.brodzinski.net/2014/10/01/fake-pl2303-how-to-install/
 #define F_CPU 7372800UL
 #include <avr/io.h>
 
