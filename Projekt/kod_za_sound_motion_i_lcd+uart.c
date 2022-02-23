@@ -10,6 +10,7 @@
 
 #include "lcd.h"
 
+
 static uint8_t tSS = 0;
 static uint8_t tS = 0;
 static uint8_t tM = 0;
@@ -17,9 +18,38 @@ static uint8_t tH = 0;
 
 static uint8_t fMode = 0;
 
-static uint16_t timeout = 10;
+
 static int8_t sound_enable = 1;
 static int8_t pir_enable = 1;
+
+
+void usart_init(uint16_t baudRate) {
+	if (baudRate != 2400 && baudRate != 4800 && baudRate != 9600) return;
+	// calculate UBRR from baudRate
+	uint16_t ubrr = ((F_CPU)/(16UL*baudRate)) - 1;
+	UBRRH = (ubrr << 8);
+	UBRRL = ubrr;
+	
+	// enable receive and transmit
+	UCSRB = _BV(RXEN) | _BV(TXEN) | _BV(RXCIE);
+	
+	// frame format: 8 data bits, 1 stop bit, no parity
+	UCSRC = _BV(URSEL) | _BV(UCSZ0) | _BV(UCSZ1) ;
+}
+
+void usart_putc(const unsigned char data) {
+	while ( !( UCSRA & _BV(UDRE)) );
+	UDR = data;
+}
+
+void usart_puts(const char* data) {
+	while(*data != 0x00){
+		usart_putc(*data);
+		data++;
+	}
+}
+
+
 
 void delay(uint16_t timeout) {
 	uint16_t i;
@@ -33,23 +63,7 @@ void debounce() {
 	GIFR = _BV(INTF0) | _BV(INTF1);
 }
 
-ISR(INT0_vect) {
-	if(sound_enable == 1){
-		sound_enable = 0;
-	}else{
-		sound_enable = 1;
-	}
-	debounce();
-}
 
-ISR(INT1_vect) {
-	if(pir_enable == 1){
-		pir_enable = 0;
-		}else{
-		pir_enable = 1;
-	}
-	debounce();
-}
 
 void changeTime() {
 	char time[9];
@@ -73,8 +87,53 @@ void changeTime() {
 		lcd_gotoxy(0, 0);
 		lcd_puts("Motion sensor");
 	}
-	lcd_gotoxy(0, 1); // pozicioniramo sat u sredinu lcd ekrana
-	lcd_puts(time);
+	if(fMode == 3){
+		usart_puts("Sound sensor turned on ");
+		usart_puts(time);
+		usart_puts("\n");
+	}
+	if(fMode == 4){
+			usart_puts("Sound sensor turned off ");
+			usart_puts(time);
+			usart_puts("\n");
+		}
+	if(fMode == 5){
+		usart_puts("Motion sensor turned on ");
+		usart_puts(time);
+		usart_puts("\n");
+	}
+	if(fMode == 6){
+		usart_puts("Motion sensor turned off ");
+		usart_puts(time);
+		usart_puts("\n");
+		}		
+}
+ISR(INT0_vect) {
+	
+	if(sound_enable == 1){
+		fMode = 3;
+		changeTime();
+		sound_enable = 0;
+		}else{
+		fMode = 4;
+		changeTime();
+		sound_enable = 1;
+	}
+	debounce();
+}
+
+ISR(INT1_vect) {
+	
+	if(pir_enable == 1){
+		fMode = 5;
+		pir_enable = 0;
+		changeTime();
+		}else{
+		fMode = 6;
+		pir_enable = 1;
+		changeTime();
+	}
+	debounce();
 }
 
 ISR(TIMER0_COMP_vect) {
@@ -116,9 +175,10 @@ int main(void) {
 	MCUCR = _BV(ISC01) | _BV(ISC11);
 	GICR = _BV(INT0) | _BV(INT1);
 	 
-
-	
 	sei();
+	
+	usart_init(9600);
+	usart_puts("pusi kitu");
 
 	lcd_init(LCD_DISP_ON);
 	lcd_clrscr();
