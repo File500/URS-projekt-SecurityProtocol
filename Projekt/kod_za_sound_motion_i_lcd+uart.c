@@ -20,19 +20,18 @@ static uint8_t tH = 0;
 static uint8_t fMode = 0;
 
 
-static int8_t sound_enable = 1;
-static int8_t pir_enable = 1;
+static uint8_t sound_enable = 1;
+static uint8_t pir_enable = 1;
 
 
 void usart_init(uint16_t baudRate) {
-	if (baudRate != 2400 && baudRate != 4800 && baudRate != 9600) return;
 	// calculate UBRR from baudRate
 	uint16_t ubrr = ((F_CPU)/(16UL*baudRate)) - 1;
 	UBRRH = (ubrr << 8);
 	UBRRL = ubrr;
 	
 	// enable receive and transmit
-	UCSRB = _BV(RXEN) | _BV(TXEN) | _BV(RXCIE);
+	UCSRB = _BV(RXEN) | _BV(TXEN);    // | _BV(RXCIE); Ovo je bit da se omogući RX interrupt. Pošto mi nemamo Rx interrupt ovo nam ne treba. Testirati!!
 	
 	// frame format: 8 data bits, 1 stop bit, no parity
 	UCSRC = _BV(URSEL) | _BV(UCSZ0) | _BV(UCSZ1) ;
@@ -66,7 +65,7 @@ void debounce() {
 
 
 
-void changeTime() {
+void displayMessage() {
 	char time[9];
 
 	time[0] = '0' + (tH / 10);
@@ -113,11 +112,11 @@ ISR(INT0_vect) {
 	
 	if(sound_enable == 1){
 		fMode = 3;
-		changeTime();
+		displayMessage();
 		sound_enable = 0;
 		}else{
 		fMode = 4;
-		changeTime();
+		displayMessage();
 		sound_enable = 1;
 	}
 	debounce();
@@ -128,11 +127,11 @@ ISR(INT1_vect) {
 	if(pir_enable == 1){
 		fMode = 5;
 		pir_enable = 0;
-		changeTime();
+		displayMessage();
 		}else{
 		fMode = 6;
 		pir_enable = 1;
-		changeTime();
+		displayMessage();
 	}
 	debounce();
 }
@@ -187,7 +186,7 @@ int main(void) {
 		if(sound_enable==1){
 			if ((PINB & _BV(SOUND_INPUT)) == 0) {
 				fMode = 1;
-				changeTime();
+				displayMessage();
 			}
 		}
 		
@@ -195,7 +194,7 @@ int main(void) {
 		{
 			if (PINB & _BV(PIR_INPUT)) {
 				fMode = 2;
-				changeTime();
+				displayMessage();
 			}
 		}
 		
