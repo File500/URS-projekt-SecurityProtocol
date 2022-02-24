@@ -25,15 +25,16 @@ static uint8_t pir_enable = 1;
 
 
 void usart_init(uint16_t baudRate) {
-	// calculate UBRR from baudRate
+	// Računanje UBRR iz baudRate
 	uint16_t ubrr = ((F_CPU)/(16UL*baudRate)) - 1;
 	UBRRH = (ubrr << 8);
 	UBRRL = ubrr;
 	
-	// enable receive and transmit
+	// omogućavanje primanja i slanja
 	UCSRB = _BV(RXEN) | _BV(TXEN);    // | _BV(RXCIE); Ovo je bit da se omogući RX interrupt. Pošto mi nemamo Rx interrupt ovo nam ne treba. Testirati!!
 	
-	// frame format: 8 data bits, 1 stop bit, no parity
+	//8 data bits 
+	//no parity
 	UCSRC = _BV(URSEL) | _BV(UCSZ0) | _BV(UCSZ1) ;
 }
 
