@@ -179,7 +179,6 @@ int main(void) {
 	sei();
 	
 	usart_init(9600);
-	usart_puts("pusi kitu");
 
 	lcd_init(LCD_DISP_ON);
 	lcd_clrscr();
