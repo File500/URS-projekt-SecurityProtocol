@@ -6,7 +6,7 @@
 
 #include <avr/interrupt.h>
 
-#define PIR_INPUT 6
+#define PIR_INPUT 7
 #define SOUND_INPUT 0
 
 #include "lcd.h"
@@ -18,22 +18,20 @@ static uint8_t tM = 0;
 static uint8_t tH = 0;
 
 static uint8_t fMode = 0;
-
-
 static uint8_t sound_enable = 1;
 static uint8_t pir_enable = 1;
-
+static int retriger = 0;
 
 void usart_init(uint16_t baudRate) {
-	// Računanje UBRR iz baudRate
+	// Ra?unanje UBRR iz baudRate
 	uint16_t ubrr = ((F_CPU)/(16UL*baudRate)) - 1;
 	UBRRH = (ubrr << 8);
 	UBRRL = ubrr;
 	
-	// omogućavanje primanja i slanja
-	UCSRB = _BV(RXEN) | _BV(TXEN);    // | _BV(RXCIE); Ovo je bit da se omogući RX interrupt. Pošto mi nemamo Rx interrupt ovo nam ne treba. Testirati!!
+	// omogu?avanje primanja i slanja
+	UCSRB = _BV(RXEN) | _BV(TXEN);    // | _BV(RXCIE); Ovo je bit da se omogu?i RX interrupt. Pošto mi nemamo Rx interrupt ovo nam ne treba. Testirati!!
 	
-	//8 data bits 
+	//8 data bits
 	//no parity
 	UCSRC = _BV(URSEL) | _BV(UCSZ0) | _BV(UCSZ1) ;
 }
@@ -83,31 +81,43 @@ void displayMessage() {
 	if (fMode == 1) {
 		lcd_gotoxy(0, 0);
 		lcd_puts("Sound sensor");
+		lcd_gotoxy(0, 1);
+		lcd_puts(time);
 	}
 	if (fMode == 2) {
 		lcd_gotoxy(0, 0);
 		lcd_puts("Motion sensor");
+		lcd_gotoxy(0, 1);
+		lcd_puts(time);
 	}
 	if(fMode == 3){
-		usart_puts("Sound sensor turned on ");
+		usart_puts("Sound sensor turned off ");
 		usart_puts(time);
+		usart_puts("\n");
+		usart_puts("---------------------------------");
 		usart_puts("\n");
 	}
 	if(fMode == 4){
-			usart_puts("Sound sensor turned off ");
-			usart_puts(time);
-			usart_puts("\n");
-		}
-	if(fMode == 5){
-		usart_puts("Motion sensor turned on ");
+		usart_puts("Sound sensor turned on ");
 		usart_puts(time);
 		usart_puts("\n");
+		usart_puts("---------------------------------");
+		usart_puts("\n");
 	}
-	if(fMode == 6){
+	if(fMode == 5){
 		usart_puts("Motion sensor turned off ");
 		usart_puts(time);
 		usart_puts("\n");
-		}		
+		usart_puts("---------------------------------");
+		usart_puts("\n");
+	}
+	if(fMode == 6){
+		usart_puts("Motion sensor turned on ");
+		usart_puts(time);
+		usart_puts("\n");
+		usart_puts("---------------------------------");
+		usart_puts("\n");
+	}
 }
 ISR(INT0_vect) {
 	
@@ -161,28 +171,33 @@ ISR(TIMER0_COMP_vect) {
 
 int main(void) {
 
-	DDRB = 0x00; //Pir i sound kao izlazni
+	DDRB = 0x00; //sound input 
 
 	DDRD = _BV(4);
+	
+	DDRC &= (1<<PIR_INPUT);	//motion input
 
+	//lcd
 	TCCR1A = _BV(COM1B1) | _BV(WGM10);
 	TCCR1B = _BV(WGM12) | _BV(CS11);
 	OCR1B = 28;
-
+	//timer
 	TCCR0 = _BV(WGM01) | _BV(CS02) | _BV(CS00);
 	OCR0 = 72;
 	TIMSK = _BV(OCIE0);
-	
+	//interupts
 	MCUCR = _BV(ISC01) | _BV(ISC11);
 	GICR = _BV(INT0) | _BV(INT1);
-	 
+	
 	sei();
 	
 	usart_init(9600);
 
 	lcd_init(LCD_DISP_ON);
 	lcd_clrscr();
+	
 	while (1) {
+		
 		if(sound_enable==1){
 			if ((PINB & _BV(SOUND_INPUT)) == 0) {
 				fMode = 1;
@@ -192,13 +207,19 @@ int main(void) {
 		
 		if (pir_enable==1)
 		{
-			if (PINB & _BV(PIR_INPUT)) {
+			if ((PINC & _BV(PIR_INPUT))) {
 				fMode = 2;
-				displayMessage();
+				retriger++;
+				
+				if(retriger > 5){
+					retriger=0;
+					displayMessage();
+				}
 			}
 		}
 		
-		delay(2000);
+
+		delay(3000);
 		lcd_clrscr();
 
 	}
