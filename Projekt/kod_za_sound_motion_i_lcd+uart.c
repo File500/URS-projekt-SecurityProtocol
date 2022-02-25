@@ -29,8 +29,7 @@ void usart_init(uint16_t baudRate) {
 	UBRRL = ubrr;
 	
 	// omogu?avanje primanja i slanja
-	UCSRB = _BV(RXEN) | _BV(TXEN);    // | _BV(RXCIE); Ovo je bit da se omogu?i RX interrupt. Pošto mi nemamo Rx interrupt ovo nam ne treba. Testirati!!
-	
+	UCSRB = _BV(RXEN) | _BV(TXEN);   
 	//8 data bits
 	//no parity
 	UCSRC = _BV(URSEL) | _BV(UCSZ0) | _BV(UCSZ1) ;
