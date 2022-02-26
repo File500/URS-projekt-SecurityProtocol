@@ -16,8 +16,9 @@ while 1:
             contents: str = serialString.decode('utf-8').rstrip()
 
             print(contents)
+            f = open("alarm_records.txt", "a")    
             f.write(contents)
             f.write('\n')    
-            
-f.close()
+            f.close()
+        
 serialPort.close()
