@@ -15,8 +15,9 @@ while 1:
             # Decode contents from the buffer and strip CR
             contents: str = serialString.decode('utf-8').rstrip()
 
-            print(serialString)
-            f.write(serialString)
+            print(contents)
+            f.write(contents)
+            f.write('\n')    
             
 f.close()
 serialPort.close()
